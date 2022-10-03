@@ -574,7 +574,8 @@ At no point did DC2 ever use it's configured `root_pki_path` --- it is, after al
 
 And when DC2 generated its intermediate cert, it asked DC1 to sign it, which did the following:
 
-```PUT /v1/connect_dc1_root/root/sign-intermediate HTTP/1.1
+```
+PUT /v1/connect_dc1_root/root/sign-intermediate HTTP/1.1
 Host: 127.0.0.1:8200
 User-Agent: Go-http-client/1.1
 Content-Length: 660
