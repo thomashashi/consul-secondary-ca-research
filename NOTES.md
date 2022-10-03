@@ -566,6 +566,7 @@ Certificate:
             Not After : Sep 30 21:30:32 2032 GMT
         Subject: CN=pri-1iq1vb2.vault.ca.0d2a1c3d.consul
 [... truncated for brevity ...]
+```
 
 See that the second entry is the *DC1* `root_pki_path`.
 
