@@ -1,0 +1,27 @@
+{
+  "request_id": "43e2257d-2525-aa44-aa28-56fdf24fde64",
+  "lease_id": "",
+  "lease_duration": 0,
+  "renewable": false,
+  "data": null,
+  "warnings": null,
+  "auth": {
+    "client_token": "hvs.CAESIB9cgtSuaBRy9muGCIWGANYS71Q34dked4qaIpXZDKeaGh4KHGh2cy5JSW1KckJiVEc5dUF1UGtHdmh3YTdwbWE",
+    "accessor": "CUx7wNKs7h7vkmlkK7QQPmFw",
+    "policies": [
+      "connect-dc2-ca",
+      "default"
+    ],
+    "token_policies": [
+      "connect-dc2-ca",
+      "default"
+    ],
+    "identity_policies": null,
+    "metadata": null,
+    "orphan": false,
+    "entity_id": "",
+    "lease_duration": 2764800,
+    "renewable": true,
+    "mfa_requirement": null
+  }
+}
