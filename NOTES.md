@@ -1,6 +1,6 @@
-= dc2 vault configuration
+# dc2 vault configuration
 
-== `/etc/vault.d/vault.hcl`
+## `/etc/vault.d/vault.hcl`
 
 ```
 ui = true
@@ -14,7 +14,7 @@ listener "tcp" {
 }
 ```
 
-== setup
+## setup
 
 1. `sudo install -o vault -g vault -m 2750 -d /opt/vault`
 2. `sudo install -o vault -g vault -m 2750 -d /opt/vault/data`
@@ -25,7 +25,7 @@ listener "tcp" {
 7. `vault operator unseal $(jq -r '.unseal_keys_b64[0]' dc1-vault-keys.json)`
 8. `export VAULT_TOKEN=$(jq -r '.root_token' dc1-vault-keys.json )`
 
-== `vault-policy-connect-dc1-ca.hcl`
+## `vault-policy-connect-dc1-ca.hcl`
 
 ```
 # Consul Managed PKI Mounts
@@ -50,14 +50,14 @@ path "/connect_dc1_inter/*" {
 }
 ```
 
-== policy setup
+## policy setup
 
 1. `vault policy write connect-dc1-ca vault-policy-connect-dc1-ca.hcl`
 2. `vault token create -policy=connect-dc1-ca -format json > dc1-consul-vault-token.json`
 
-= dc1 consul setup
+# dc1 consul setup
 
-== `/etc/consul.d/consul.hcl`
+## `/etc/consul.d/consul.hcl`
 
 ```
 datacenter = "dc1"
@@ -82,18 +82,18 @@ connect {
 }
 ```
 
-== start tcpdump
+## start tcpdump
 
 1. `sudo tcpdump -i lo -s0 -w dc1-consul.pcap port 8500 or port 8300 or port 8200`
 
-== setup
+## setup
 
 1. `sudo install -o consul -g consul -m 2750 -d /opt/consul`
 2. `sudo install -o consul -g consul -m 2750 -d /opt/consul/data`
 3. `sudo systemctl enable consul.service`
 4. `sudo systemctl start consul.service`
 
-= get certs for dc1
+# get certs for dc1
 
 1. `curl -s http://127.0.0.1:8500/v1/agent/connect/ca/roots > dc1-consul-ca-roots.json`
 2. `jq -r '.Roots[0].RootCert' dc1-consul-ca-roots.json | openssl x509 -noout -text`
@@ -230,9 +230,9 @@ Certificate:
 ```
 
 
-= dc2 vault configuration
+# dc2 vault configuration
 
-== `/etc/vault.d/vault.hcl`
+## `/etc/vault.d/vault.hcl`
 
 ```
 ui = true
@@ -246,7 +246,7 @@ listener "tcp" {
 }
 ```
 
-== setup
+## setup
 
 1. `sudo install -o vault -g vault -m 2750 -d /opt/vault`
 2. `sudo install -o vault -g vault -m 2750 -d /opt/vault/data`
@@ -257,7 +257,7 @@ listener "tcp" {
 7. `vault operator unseal $(jq -r '.unseal_keys_b64[0]' dc2-vault-keys.json)`
 8. `export VAULT_TOKEN=$(jq -r '.root_token' dc2-vault-keys.json )`
 
-== `vault-policy-connect-dc2-ca.hcl`
+## `vault-policy-connect-dc2-ca.hcl`
 
 ```
 # Consul Managed PKI Mounts
@@ -282,14 +282,14 @@ path "/connect_dc2_inter/*" {
 }
 ```
 
-== policy setup
+## policy setup
 
 1. `vault policy write connect-dc2-ca vault-policy-connect-dc2-ca.hcl`
 2. `vault token create -policy=connect-dc2-ca -format json > dc2-consul-vault-token.json`
 
-= dc2 consul setup
+# dc2 consul setup
 
-== `/etc/consul.d/consul.hcl`
+## `/etc/consul.d/consul.hcl`
 
 ```
 datacenter = "dc2"
@@ -315,11 +315,11 @@ connect {
 }
 ```
 
-== start tcpdump
+## start tcpdump
 
 1. `sudo tcpdump -i lo -s0 -w dc2-consul.pcap port 8500 or port 8300 or port 8200`
 
-== setup
+## setup
 
 1. `sudo install -o consul -g consul -m 2750 -d /opt/consul`
 2. `sudo install -o consul -g consul -m 2750 -d /opt/consul/data`
@@ -327,7 +327,7 @@ connect {
 4. `sudo systemctl start consul.service`
 5. `consul join -wan 10.0.255.202`
 
-= get certs for dc2
+# get certs for dc2
 
 1. `curl -s http://127.0.0.1:8500/v1/agent/connect/ca/roots > dc2-consul-ca-roots.json`
 2. `jq -r '.Roots[0].RootCert' dc2-consul-ca-roots.json | openssl x509 -noout -text`
@@ -464,7 +464,7 @@ Certificate:
          6d:b0:eb:26:a9:4d:59:5f:b5:a6:02:a5:ea:61:7b:b2:23
 ```
 
-= analysis
+# analysis
 
 Looking at the pcap from the DC2 consul server, we see this request go to the DC2 Vault server:
 
