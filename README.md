@@ -1,4 +1,4 @@
-# dc2 vault configuration
+# dc1 vault configuration
 
 ## `/etc/vault.d/vault.hcl`
 
@@ -21,7 +21,7 @@ listener "tcp" {
 3. `sudo systemctl enable vault.service`
 4. `sudo systemctl start vault.service`
 5. `export VAULT_ADDR=http://127.0.0.1:8200`
-6. `vault operator init -n 1 -t 1 -format json > dc2-vault-keys.json`
+6. `vault operator init -n 1 -t 1 -format json > dc1-vault-keys.json`
 7. `vault operator unseal $(jq -r '.unseal_keys_b64[0]' dc1-vault-keys.json)`
 8. `export VAULT_TOKEN=$(jq -r '.root_token' dc1-vault-keys.json )`
 
