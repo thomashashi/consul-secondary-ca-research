@@ -600,4 +600,69 @@ Certificate Request:
                 DNS:sec-1of9y0b.vault.ca.0d2a1c3d.consul, URI:spiffe://0d2a1c3d-ca26-3383-a0d9-152f5ca233b3.consul
 ```
 
+# Shutting down secondary Vault
 
+1. `sudo systemctl stop vault.service`
+2. `curl -s http://127.0.0.1:8500/v1/agent/connect/ca/leaf/service-b > dc2-service-b-certs-novault.json`
+3. Note that we get a certificate back, but its the same certificate as we had previously, because the local Vault agent will cache certificates:
+
+```
+jq -r .CertPEM dc2-service-b-certs-novault.json | openssl x509 -noout -text
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            6b:24:d4:a6:59:04:e5:6b:c0:98:bd:e7:b0:b8:0a:2a:07:e1:4a:76
+        Validity
+            Not Before: Oct  3 21:52:40 2022 GMT
+            Not After : Oct  6 21:53:10 2022 GMT
+[...]
+            X509v3 Subject Alternative Name: critical
+                URI:spiffe://0d2a1c3d-ca26-3383-a0d9-152f5ca233b3.consul/ns/default/dc/dc2/svc/service-b
+```
+
+4. But if we try for a service not cached locally: `curl -v http://127.0.0.1:8500/v1/agent/connect/ca/leaf/service-c`:
+
+```
+* Expire in 0 ms for 6 (transfer 0x55ec3fd8f0f0)
+*   Trying 127.0.0.1...
+* TCP_NODELAY set
+* Expire in 200 ms for 4 (transfer 0x55ec3fd8f0f0)
+* Connected to 127.0.0.1 (127.0.0.1) port 8500 (#0)
+> GET /v1/agent/connect/ca/leaf/service-c HTTP/1.1
+> Host: 127.0.0.1:8500
+> User-Agent: curl/7.64.0
+> Accept: */*
+>
+< HTTP/1.1 500 Internal Server Error
+< Vary: Accept-Encoding
+< X-Consul-Default-Acl-Policy: allow
+< Date: Tue, 04 Oct 2022 14:09:08 GMT
+< Content-Length: 137
+< Content-Type: text/plain; charset=utf-8
+<
+* Connection #0 to host 127.0.0.1 left intact
+error issuing cert: Put "http://127.0.0.1:8200/v1/connect_dc2_inter/sign/leaf-cert": dial tcp 127.0.0.1:8200: connect: connection refused
+```
+
+## Cache notes
+
+The cached certificates, if any, are cached on the client agent where the API call was made to `/v1/agent/connect/ca/leaf/:service`, they are **not** cached on the Consul servers. This cache lives in memory. Certificates are unique per-agent, if I get on a client system in dc2 and do `curl -s http://127.0.0.1:8500/v1/agent/connect/ca/leaf/service-b > dc2-client-0-service-b-cert.json`, the cert I get back is:
+
+```
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            2c:3a:b1:98:17:58:15:68:d9:af:d4:d9:e6:60:5c:8d:eb:94:ad:1b
+        Signature Algorithm: ecdsa-with-SHA256
+        Issuer: CN = sec-1of9y0b.vault.ca.0d2a1c3d.consul
+        Validity
+            Not Before: Oct  4 14:18:48 2022 GMT
+            Not After : Oct  7 14:19:18 2022 GMT
+[...]
+            X509v3 Subject Alternative Name: critical
+                URI:spiffe://0d2a1c3d-ca26-3383-a0d9-152f5ca233b3.consul/ns/default/dc/dc2/svc/service-b
+```
+
+Note that the SPIFFE URI SAN is the same as above, but the serial numbers and validity are different, hence, different certificates.
