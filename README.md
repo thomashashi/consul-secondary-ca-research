@@ -41,6 +41,11 @@ path "/sys/mounts/connect_dc1_inter" {
   capabilities = [ "create", "read", "update", "delete", "list" ]
 }
 
+# Consul PR 14898
+path "/sys/mounts/connect_dc1_inter/tune" {
+  capabilities = [ "update" ]
+}
+
 path "/connect_dc1_root/*" {
   capabilities = [ "create", "read", "update", "delete", "list" ]
 }
@@ -78,7 +83,13 @@ connect {
     token = "XXX"
     root_pki_path = "connect_dc1_root"
     intermediate_pki_path = "connect_dc1_inter"
+    leaf_cert_ttl = "1h"
+    root_cert_ttl = "6h"
+    intermediate_cert_ttl = "3h"
   }
+}
+ports {
+  grpc = 8502
 }
 ```
 
@@ -103,22 +114,22 @@ Certificate:
     Data:
         Version: 3 (0x2)
         Serial Number:
-            65:a6:ae:51:30:df:6a:aa:0c:06:7a:2f:e1:24:ed:20:2b:79:0e:ff
+            3f:5f:02:48:94:90:b2:8a:1c:b6:d5:1f:15:de:4b:3f:c7:fb:24:11
         Signature Algorithm: ecdsa-with-SHA256
-        Issuer: CN = pri-1iq1vb2.vault.ca.0d2a1c3d.consul
+        Issuer: CN = pri-8tp5lllp.vault.ca.ff3d324a.consul
         Validity
-            Not Before: Oct  3 21:30:02 2022 GMT
-            Not After : Sep 30 21:30:32 2032 GMT
-        Subject: CN = pri-1iq1vb2.vault.ca.0d2a1c3d.consul
+            Not Before: Oct  6 20:30:23 2022 GMT
+            Not After : Oct  7 02:30:53 2022 GMT
+        Subject: CN = pri-8tp5lllp.vault.ca.ff3d324a.consul
         Subject Public Key Info:
             Public Key Algorithm: id-ecPublicKey
                 Public-Key: (256 bit)
                 pub:
-                    04:36:63:30:fa:b8:91:cd:2d:e6:c8:42:91:c0:c0:
-                    c1:fa:ea:68:b9:c3:2d:9b:47:a5:b8:93:52:c6:90:
-                    6d:31:21:1e:1b:b6:43:9f:c5:3f:e9:75:e2:13:5a:
-                    b6:7c:1d:a4:b8:2c:56:17:0c:a1:1b:bf:dc:ae:b7:
-                    31:cc:9a:99:03
+                    04:95:d6:54:53:04:b7:2d:2a:9e:49:e1:be:de:c7:
+                    da:9c:a1:29:76:c0:ec:53:e4:7c:bc:12:4b:b7:78:
+                    d4:17:97:8c:8e:82:fa:b1:20:3a:bf:4a:e5:45:d4:
+                    3d:ec:c6:9b:f3:db:19:18:fb:05:b5:cc:75:fa:82:
+                    c5:cb:1b:e2:99
                 ASN1 OID: prime256v1
                 NIST CURVE: P-256
         X509v3 extensions:
@@ -126,18 +137,18 @@ Certificate:
                 Certificate Sign, CRL Sign
             X509v3 Basic Constraints: critical
                 CA:TRUE
-            X509v3 Subject Key Identifier:
-                7D:66:9C:6D:06:D6:DE:40:10:41:06:AF:A4:5F:C0:5C:CD:65:07:2A
-            X509v3 Authority Key Identifier:
-                keyid:7D:66:9C:6D:06:D6:DE:40:10:41:06:AF:A4:5F:C0:5C:CD:65:07:2A
+            X509v3 Subject Key Identifier: 
+                15:C1:20:EE:E4:31:05:82:6C:0B:36:B3:93:5E:75:73:19:2F:84:47
+            X509v3 Authority Key Identifier: 
+                keyid:15:C1:20:EE:E4:31:05:82:6C:0B:36:B3:93:5E:75:73:19:2F:84:47
 
-            X509v3 Subject Alternative Name:
-                DNS:pri-1iq1vb2.vault.ca.0d2a1c3d.consul, URI:spiffe://0d2a1c3d-ca26-3383-a0d9-152f5ca233b3.consul
+            X509v3 Subject Alternative Name: 
+                DNS:pri-8tp5lllp.vault.ca.ff3d324a.consul, URI:spiffe://ff3d324a-6aeb-c57c-57c9-9ac62fe01f1f.consul
     Signature Algorithm: ecdsa-with-SHA256
-         30:44:02:20:2b:96:4a:e1:56:f3:da:7c:8a:bd:ad:f0:63:27:
-         3d:15:ce:2c:35:97:b9:cd:15:c1:24:ef:a9:b0:d4:22:ac:77:
-         02:20:1d:0d:2d:4a:60:e7:71:f4:73:5e:11:58:fb:28:ea:77:
-         e2:e2:d9:20:b7:82:35:dc:49:d1:20:60:df:c3:fd:7a
+         30:45:02:20:07:b6:f9:c2:41:44:9c:12:ec:36:82:13:03:42:
+         4c:51:cd:dc:b5:5b:3c:9a:7e:a4:3a:cf:e0:58:27:6f:ef:5e:
+         02:21:00:8f:43:4f:9e:83:14:72:29:04:8f:cc:a1:41:95:c3:
+         6f:da:bb:3b:8e:1c:ac:6a:84:48:3a:e0:8c:2c:66:3c:80
 ```
 
 3. `jq -r '.Roots[0].IntermediateCerts[0]' dc1-consul-ca-roots.json | openssl x509 -noout -text`
@@ -147,22 +158,22 @@ Certificate:
     Data:
         Version: 3 (0x2)
         Serial Number:
-            6e:f6:26:86:f6:75:15:79:da:cb:76:6b:56:73:b6:a8:f0:3b:f8:86
+            4a:77:f8:54:4d:11:1f:71:c7:0e:af:28:e7:b8:47:06:ac:86:2a:46
         Signature Algorithm: ecdsa-with-SHA256
-        Issuer: CN = pri-1iq1vb2.vault.ca.0d2a1c3d.consul
+        Issuer: CN = pri-8tp5lllp.vault.ca.ff3d324a.consul
         Validity
-            Not Before: Oct  3 21:30:02 2022 GMT
-            Not After : Oct  3 21:30:32 2023 GMT
-        Subject: CN = pri-z1zeikz2.vault.ca.0d2a1c3d.consul
+            Not Before: Oct  6 20:30:23 2022 GMT
+            Not After : Oct  6 23:30:53 2022 GMT
+        Subject: CN = pri-gvkobi4.vault.ca.ff3d324a.consul
         Subject Public Key Info:
             Public Key Algorithm: id-ecPublicKey
                 Public-Key: (256 bit)
                 pub:
-                    04:35:83:c8:96:e8:a4:b3:85:d7:61:52:2e:fa:55:
-                    7a:ef:c0:12:76:4b:2c:87:9c:2a:06:50:83:5b:ca:
-                    c6:f4:52:fd:74:c8:f7:aa:ab:63:cb:86:e9:aa:c9:
-                    a3:44:c7:ea:41:f3:55:90:0a:fe:3d:b0:75:45:92:
-                    30:4d:47:17:a5
+                    04:d0:ad:ea:6d:db:6b:34:8f:ee:e0:46:3b:62:fa:
+                    dd:04:41:83:d7:a2:5b:4c:96:fd:77:4e:22:67:95:
+                    19:e0:68:4e:2d:df:a6:fa:2c:44:09:1b:86:fa:b8:
+                    24:40:b5:62:ef:5f:d4:81:bd:c2:61:c8:23:ad:c6:
+                    27:cf:e4:60:c6
                 ASN1 OID: prime256v1
                 NIST CURVE: P-256
         X509v3 extensions:
@@ -170,18 +181,18 @@ Certificate:
                 Certificate Sign, CRL Sign
             X509v3 Basic Constraints: critical
                 CA:TRUE
-            X509v3 Subject Key Identifier:
-                BD:56:DB:5E:54:1E:1A:03:42:68:3F:CD:53:86:A2:8B:85:47:7E:B2
-            X509v3 Authority Key Identifier:
-                keyid:7D:66:9C:6D:06:D6:DE:40:10:41:06:AF:A4:5F:C0:5C:CD:65:07:2A
+            X509v3 Subject Key Identifier: 
+                6D:94:08:0E:6D:81:82:1F:47:53:38:78:5D:E5:95:8E:17:ED:45:B8
+            X509v3 Authority Key Identifier: 
+                keyid:15:C1:20:EE:E4:31:05:82:6C:0B:36:B3:93:5E:75:73:19:2F:84:47
 
-            X509v3 Subject Alternative Name:
-                DNS:pri-z1zeikz2.vault.ca.0d2a1c3d.consul, URI:spiffe://0d2a1c3d-ca26-3383-a0d9-152f5ca233b3.consul
+            X509v3 Subject Alternative Name: 
+                DNS:pri-gvkobi4.vault.ca.ff3d324a.consul, URI:spiffe://ff3d324a-6aeb-c57c-57c9-9ac62fe01f1f.consul
     Signature Algorithm: ecdsa-with-SHA256
-         30:45:02:20:53:16:51:27:7f:f2:67:0b:b5:65:f4:d4:ad:ba:
-         75:82:46:39:2b:c0:c1:cc:c4:b1:76:ef:a7:de:6f:64:6a:7e:
-         02:21:00:c4:7d:26:96:61:72:2a:40:19:8f:23:a8:05:3b:7f:
-         9e:df:93:8d:02:e7:91:39:0c:31:5e:c8:69:9b:c4:0b:05
+         30:45:02:20:30:13:ea:bc:0e:63:77:83:ef:a2:9c:dd:f6:dc:
+         1d:13:b5:64:38:ab:a7:62:21:00:2a:ea:6c:fd:ef:5e:7e:26:
+         02:21:00:9c:1f:00:17:56:ac:56:e6:63:cf:a4:f6:0d:dc:3d:
+         58:32:a1:f8:59:db:79:7d:0a:dc:7e:6d:8c:22:a2:dc:74
 ```
 
 4. `curl -s http://127.0.0.1:8500/v1/agent/connect/ca/leaf/service-a > dc1-service-a-certs.json`
@@ -192,41 +203,41 @@ Certificate:
     Data:
         Version: 3 (0x2)
         Serial Number:
-            1f:0d:d8:e0:6c:63:dc:cd:ee:c9:50:57:16:bb:41:f3:1c:47:84:b1
+            6f:f2:3b:4d:6c:e7:fe:f8:f3:7e:15:c2:78:e2:b8:58:f7:3c:0e:c4
         Signature Algorithm: ecdsa-with-SHA256
-        Issuer: CN = pri-z1zeikz2.vault.ca.0d2a1c3d.consul
+        Issuer: CN = pri-gvkobi4.vault.ca.ff3d324a.consul
         Validity
-            Not Before: Oct  3 21:34:46 2022 GMT
-            Not After : Oct  6 21:35:16 2022 GMT
-        Subject:
+            Not Before: Oct  6 20:33:29 2022 GMT
+            Not After : Oct  6 21:33:59 2022 GMT
+        Subject: 
         Subject Public Key Info:
             Public Key Algorithm: id-ecPublicKey
                 Public-Key: (256 bit)
                 pub:
-                    04:df:d0:b9:fe:af:0c:db:44:10:40:88:6c:79:6f:
-                    f4:54:8f:b7:ee:54:ea:b8:dc:f5:34:9c:0c:b0:89:
-                    3d:ac:ea:ad:78:34:2d:31:e2:a2:fd:b7:25:0d:f1:
-                    72:ab:32:7b:2c:2a:f9:52:43:c9:2b:59:83:d0:c7:
-                    89:bd:6f:ae:10
+                    04:06:b6:3f:8e:04:40:d4:69:e3:4e:07:3f:bb:dd:
+                    15:f6:07:88:43:01:2f:57:b4:87:ec:1e:36:d8:60:
+                    3e:2f:23:df:12:50:5f:e1:a0:18:a7:16:00:94:b9:
+                    24:94:45:74:84:91:4a:c8:d9:c9:56:ae:8a:a3:43:
+                    c0:e7:6c:9f:bc
                 ASN1 OID: prime256v1
                 NIST CURVE: P-256
         X509v3 extensions:
             X509v3 Key Usage: critical
                 Digital Signature, Key Encipherment, Key Agreement
-            X509v3 Extended Key Usage:
+            X509v3 Extended Key Usage: 
                 TLS Web Server Authentication, TLS Web Client Authentication
-            X509v3 Subject Key Identifier:
-                2D:0D:13:15:14:95:74:69:8F:2B:A8:06:36:D9:7E:2B:DA:E1:52:D6
-            X509v3 Authority Key Identifier:
-                keyid:BD:56:DB:5E:54:1E:1A:03:42:68:3F:CD:53:86:A2:8B:85:47:7E:B2
+            X509v3 Subject Key Identifier: 
+                5A:2B:3D:B8:44:F2:17:70:EF:C4:DC:1F:FB:F7:95:D2:60:2D:55:99
+            X509v3 Authority Key Identifier: 
+                keyid:6D:94:08:0E:6D:81:82:1F:47:53:38:78:5D:E5:95:8E:17:ED:45:B8
 
             X509v3 Subject Alternative Name: critical
-                URI:spiffe://0d2a1c3d-ca26-3383-a0d9-152f5ca233b3.consul/ns/default/dc/dc1/svc/service-a
+                URI:spiffe://ff3d324a-6aeb-c57c-57c9-9ac62fe01f1f.consul/ns/default/dc/dc1/svc/service-a
     Signature Algorithm: ecdsa-with-SHA256
-         30:45:02:20:0d:50:11:00:45:00:36:1e:8b:9e:92:f9:10:00:
-         35:3e:67:e9:48:99:0a:56:c1:0f:54:0d:6d:6c:c5:57:f3:40:
-         02:21:00:e5:35:c2:fb:81:70:e5:1d:57:cb:df:33:6c:9c:a9:
-         c2:05:08:0f:2b:bd:90:0a:74:45:88:f4:c7:15:a3:58:a4
+         30:45:02:20:7d:44:34:db:98:07:0a:4e:0b:4f:15:37:09:19:
+         6c:e6:d5:63:f3:2d:3e:e7:a6:8c:4d:dd:f2:6e:1f:5a:05:18:
+         02:21:00:d5:9b:7e:13:de:21:b5:3a:3c:3d:12:dd:cb:74:1e:
+         4b:f9:65:e6:2e:b9:cd:f9:a9:02:5b:66:6a:24:3a:6b:5b
 ```
 
 
@@ -271,6 +282,11 @@ path "/sys/mounts/connect_dc2_root" {
 
 path "/sys/mounts/connect_dc2_inter" {
   capabilities = [ "create", "read", "update", "delete", "list" ]
+}
+
+# Consul PR 14898
+path "/sys/mounts/connect_dc2_inter/tune" {
+  capabilities = [ "update" ]
 }
 
 path "/connect_dc2_root/*" {
@@ -325,7 +341,7 @@ connect {
 2. `sudo install -o consul -g consul -m 2750 -d /opt/consul/data`
 3. `sudo systemctl enable consul.service`
 4. `sudo systemctl start consul.service`
-5. `consul join -wan 10.0.255.202`
+5. `consul join -wan <ip of primary consul server>`
 
 # get certs for dc2
 
@@ -337,22 +353,22 @@ Certificate:
     Data:
         Version: 3 (0x2)
         Serial Number:
-            65:a6:ae:51:30:df:6a:aa:0c:06:7a:2f:e1:24:ed:20:2b:79:0e:ff
+            3f:5f:02:48:94:90:b2:8a:1c:b6:d5:1f:15:de:4b:3f:c7:fb:24:11
         Signature Algorithm: ecdsa-with-SHA256
-        Issuer: CN = pri-1iq1vb2.vault.ca.0d2a1c3d.consul
+        Issuer: CN = pri-8tp5lllp.vault.ca.ff3d324a.consul
         Validity
-            Not Before: Oct  3 21:30:02 2022 GMT
-            Not After : Sep 30 21:30:32 2032 GMT
-        Subject: CN = pri-1iq1vb2.vault.ca.0d2a1c3d.consul
+            Not Before: Oct  6 20:30:23 2022 GMT
+            Not After : Oct  7 02:30:53 2022 GMT
+        Subject: CN = pri-8tp5lllp.vault.ca.ff3d324a.consul
         Subject Public Key Info:
             Public Key Algorithm: id-ecPublicKey
                 Public-Key: (256 bit)
                 pub:
-                    04:36:63:30:fa:b8:91:cd:2d:e6:c8:42:91:c0:c0:
-                    c1:fa:ea:68:b9:c3:2d:9b:47:a5:b8:93:52:c6:90:
-                    6d:31:21:1e:1b:b6:43:9f:c5:3f:e9:75:e2:13:5a:
-                    b6:7c:1d:a4:b8:2c:56:17:0c:a1:1b:bf:dc:ae:b7:
-                    31:cc:9a:99:03
+                    04:95:d6:54:53:04:b7:2d:2a:9e:49:e1:be:de:c7:
+                    da:9c:a1:29:76:c0:ec:53:e4:7c:bc:12:4b:b7:78:
+                    d4:17:97:8c:8e:82:fa:b1:20:3a:bf:4a:e5:45:d4:
+                    3d:ec:c6:9b:f3:db:19:18:fb:05:b5:cc:75:fa:82:
+                    c5:cb:1b:e2:99
                 ASN1 OID: prime256v1
                 NIST CURVE: P-256
         X509v3 extensions:
@@ -361,43 +377,43 @@ Certificate:
             X509v3 Basic Constraints: critical
                 CA:TRUE
             X509v3 Subject Key Identifier: 
-                7D:66:9C:6D:06:D6:DE:40:10:41:06:AF:A4:5F:C0:5C:CD:65:07:2A
+                15:C1:20:EE:E4:31:05:82:6C:0B:36:B3:93:5E:75:73:19:2F:84:47
             X509v3 Authority Key Identifier: 
-                keyid:7D:66:9C:6D:06:D6:DE:40:10:41:06:AF:A4:5F:C0:5C:CD:65:07:2A
+                keyid:15:C1:20:EE:E4:31:05:82:6C:0B:36:B3:93:5E:75:73:19:2F:84:47
 
             X509v3 Subject Alternative Name: 
-                DNS:pri-1iq1vb2.vault.ca.0d2a1c3d.consul, URI:spiffe://0d2a1c3d-ca26-3383-a0d9-152f5ca233b3.consul
+                DNS:pri-8tp5lllp.vault.ca.ff3d324a.consul, URI:spiffe://ff3d324a-6aeb-c57c-57c9-9ac62fe01f1f.consul
     Signature Algorithm: ecdsa-with-SHA256
-         30:44:02:20:2b:96:4a:e1:56:f3:da:7c:8a:bd:ad:f0:63:27:
-         3d:15:ce:2c:35:97:b9:cd:15:c1:24:ef:a9:b0:d4:22:ac:77:
-         02:20:1d:0d:2d:4a:60:e7:71:f4:73:5e:11:58:fb:28:ea:77:
-         e2:e2:d9:20:b7:82:35:dc:49:d1:20:60:df:c3:fd:7a
+         30:45:02:20:07:b6:f9:c2:41:44:9c:12:ec:36:82:13:03:42:
+         4c:51:cd:dc:b5:5b:3c:9a:7e:a4:3a:cf:e0:58:27:6f:ef:5e:
+         02:21:00:8f:43:4f:9e:83:14:72:29:04:8f:cc:a1:41:95:c3:
+         6f:da:bb:3b:8e:1c:ac:6a:84:48:3a:e0:8c:2c:66:3c:80
 ```
 
 3. `jq -r '.Roots[0].IntermediateCerts[1]' dc2-consul-ca-roots.json | openssl x509 -noout -text`
 
-**Note* it's `IntermediateCerts[1]` here to get the intermediates for dc2
+**Note** it's `IntermediateCerts[1]` here to get the intermediates for dc2
 ```
 Certificate:
     Data:
         Version: 3 (0x2)
         Serial Number:
-            17:d5:b3:e6:07:7c:c9:06:ba:80:cb:3e:cc:dd:dc:7c:37:03:2b:f6
+            72:06:51:6e:f6:93:5e:d8:37:f1:af:8a:46:20:e5:4a:b3:62:ee:ac
         Signature Algorithm: ecdsa-with-SHA256
-        Issuer: CN = pri-1iq1vb2.vault.ca.0d2a1c3d.consul
+        Issuer: CN = pri-8tp5lllp.vault.ca.ff3d324a.consul
         Validity
-            Not Before: Oct  3 21:48:32 2022 GMT
-            Not After : Oct  3 21:49:02 2023 GMT
-        Subject: CN = sec-1of9y0b.vault.ca.0d2a1c3d.consul
+            Not Before: Oct  6 20:39:49 2022 GMT
+            Not After : Oct  6 23:40:19 2022 GMT
+        Subject: CN = sec-d5k6jm6.vault.ca.ff3d324a.consul
         Subject Public Key Info:
             Public Key Algorithm: id-ecPublicKey
                 Public-Key: (256 bit)
                 pub:
-                    04:46:6c:78:61:e9:80:f1:79:df:0c:53:d2:57:27:
-                    47:51:13:e3:f9:c0:d9:d1:0c:f2:4a:be:bf:d8:65:
-                    b6:ec:78:25:55:81:ce:cb:a9:c6:52:5e:a7:f7:cf:
-                    b5:94:57:79:a2:5d:73:47:a9:fa:2d:03:5f:6b:1d:
-                    14:00:3f:40:2a
+                    04:92:4c:87:2f:8e:92:a5:70:16:a3:81:60:a5:7e:
+                    cf:a2:3a:b6:ed:60:1b:1c:66:65:06:bc:8a:74:55:
+                    de:b0:29:13:fd:e5:d4:93:aa:c3:5a:5e:cc:18:5f:
+                    6b:79:0f:23:ea:8b:43:c8:77:be:06:10:bc:2c:49:
+                    4f:fd:fa:fc:f5
                 ASN1 OID: prime256v1
                 NIST CURVE: P-256
         X509v3 extensions:
@@ -406,17 +422,17 @@ Certificate:
             X509v3 Basic Constraints: critical
                 CA:TRUE, pathlen:0
             X509v3 Subject Key Identifier: 
-                AB:B5:8F:BD:83:FB:2E:EF:D3:04:F5:D5:42:B4:8D:53:87:CF:83:BE
+                C6:CF:F7:F0:D0:BF:8D:2D:B5:0C:19:FD:D8:96:0D:CA:61:0A:BA:2D
             X509v3 Authority Key Identifier: 
-                keyid:7D:66:9C:6D:06:D6:DE:40:10:41:06:AF:A4:5F:C0:5C:CD:65:07:2A
+                keyid:15:C1:20:EE:E4:31:05:82:6C:0B:36:B3:93:5E:75:73:19:2F:84:47
 
             X509v3 Subject Alternative Name: 
-                DNS:sec-1of9y0b.vault.ca.0d2a1c3d.consul, URI:spiffe://0d2a1c3d-ca26-3383-a0d9-152f5ca233b3.consul
+                DNS:sec-d5k6jm6.vault.ca.ff3d324a.consul, URI:spiffe://ff3d324a-6aeb-c57c-57c9-9ac62fe01f1f.consul
     Signature Algorithm: ecdsa-with-SHA256
-         30:45:02:20:13:6c:20:d5:d4:81:78:51:7a:f1:d5:32:ee:b3:
-         37:02:f1:ed:14:1e:47:da:6e:27:d8:72:35:02:11:16:3d:88:
-         02:21:00:dc:0d:a3:64:ba:18:0f:ee:2d:1f:f7:e4:8a:99:30:
-         55:d1:2a:55:36:d4:a7:54:05:d2:f1:5d:50:42:bc:fb:4f
+         30:44:02:20:0c:ea:02:7a:33:05:18:84:b9:b2:9c:fc:62:dc:
+         a4:e9:75:25:56:6a:f5:d9:38:58:19:94:4f:6c:30:5a:96:5f:
+         02:20:05:53:ec:c7:66:3f:68:7a:aa:13:b9:a6:c5:5a:d7:d0:
+         dd:36:62:f5:d5:84:b5:d0:e8:46:91:de:80:68:42:bd
 ```
 
 4. `curl -s http://127.0.0.1:8500/v1/agent/connect/ca/leaf/service-b > dc2-service-b-certs.json`
@@ -427,46 +443,48 @@ Certificate:
     Data:
         Version: 3 (0x2)
         Serial Number:
-            6b:24:d4:a6:59:04:e5:6b:c0:98:bd:e7:b0:b8:0a:2a:07:e1:4a:76
+            7f:98:bc:b0:a0:25:37:90:64:1a:e2:41:cb:65:5d:4a:1b:93:a1:de
         Signature Algorithm: ecdsa-with-SHA256
-        Issuer: CN = sec-1of9y0b.vault.ca.0d2a1c3d.consul
+        Issuer: CN = sec-d5k6jm6.vault.ca.ff3d324a.consul
         Validity
-            Not Before: Oct  3 21:52:40 2022 GMT
-            Not After : Oct  6 21:53:10 2022 GMT
-        Subject:
+            Not Before: Oct  6 20:43:21 2022 GMT
+            Not After : Oct  6 21:43:51 2022 GMT
+        Subject: 
         Subject Public Key Info:
             Public Key Algorithm: id-ecPublicKey
                 Public-Key: (256 bit)
                 pub:
-                    04:3c:48:b2:af:93:aa:81:81:35:90:30:e5:da:49:
-                    05:58:07:c3:eb:4e:70:bf:2a:f3:4e:1f:7f:50:fd:
-                    8d:b1:4e:f7:34:59:10:f7:f3:59:93:5a:e5:99:71:
-                    b7:9d:c0:ff:09:29:a7:22:a9:4d:f7:af:6b:ed:bc:
-                    d4:b6:fe:82:b8
+                    04:7e:1a:c5:6b:12:b2:af:7f:da:7e:ca:db:f4:5c:
+                    d7:1c:9f:df:8c:75:1d:47:d2:32:dd:13:1c:f1:b5:
+                    74:5b:c7:f5:17:00:12:3b:af:94:f4:01:9d:65:a3:
+                    3d:4f:89:fc:fb:84:da:cc:29:2e:fb:92:16:7d:ce:
+                    00:bd:18:86:8e
                 ASN1 OID: prime256v1
                 NIST CURVE: P-256
         X509v3 extensions:
             X509v3 Key Usage: critical
                 Digital Signature, Key Encipherment, Key Agreement
-            X509v3 Extended Key Usage:
+            X509v3 Extended Key Usage: 
                 TLS Web Server Authentication, TLS Web Client Authentication
-            X509v3 Subject Key Identifier:
-                6D:19:54:12:92:5C:5F:D0:C5:36:5A:69:52:BD:70:86:72:37:70:4F
-            X509v3 Authority Key Identifier:
-                keyid:AB:B5:8F:BD:83:FB:2E:EF:D3:04:F5:D5:42:B4:8D:53:87:CF:83:BE
+            X509v3 Subject Key Identifier: 
+                D0:1C:DE:80:B8:2E:43:27:0D:6B:C3:5C:F1:37:A4:0C:6C:10:AC:92
+            X509v3 Authority Key Identifier: 
+                keyid:C6:CF:F7:F0:D0:BF:8D:2D:B5:0C:19:FD:D8:96:0D:CA:61:0A:BA:2D
 
             X509v3 Subject Alternative Name: critical
-                URI:spiffe://0d2a1c3d-ca26-3383-a0d9-152f5ca233b3.consul/ns/default/dc/dc2/svc/service-b
+                URI:spiffe://ff3d324a-6aeb-c57c-57c9-9ac62fe01f1f.consul/ns/default/dc/dc2/svc/service-b
     Signature Algorithm: ecdsa-with-SHA256
-         30:45:02:20:41:f4:af:c2:5f:f1:9e:70:90:9e:eb:fe:26:6c:
-         a0:d4:2e:8e:c0:b4:c5:0e:80:d2:bd:2b:f8:c6:07:d4:ac:8e:
-         02:21:00:d4:3a:dc:59:c1:a2:c4:ae:ce:75:f9:ed:2b:d1:99:
-         6d:b0:eb:26:a9:4d:59:5f:b5:a6:02:a5:ea:61:7b:b2:23
+         30:46:02:21:00:b8:83:ad:b7:c8:17:5b:10:18:2f:42:7a:6f:
+         af:a4:e1:c8:b9:34:3c:5a:82:2a:ac:bb:8b:20:1f:c1:23:00:
+         3c:02:21:00:b7:3a:be:bd:85:15:76:f1:ad:2e:58:c1:c8:69:
+         0b:99:86:92:d9:08:28:b0:3a:23:38:a1:1d:c9:7e:c3:49:53
 ```
 
-# analysis
+# Analysis
 
 Looking at the pcap from the DC2 consul server, we see this request go to the DC2 Vault server:
+
+XXX redo
 
 ```
 PUT /v1/connect_dc2_inter/sign/leaf-cert HTTP/1.1
@@ -599,6 +617,164 @@ Certificate Request:
             X509v3 Subject Alternative Name:
                 DNS:sec-1of9y0b.vault.ca.0d2a1c3d.consul, URI:spiffe://0d2a1c3d-ca26-3383-a0d9-152f5ca233b3.consul
 ```
+
+# Cert Lifetime
+
+## `/etc/systemd/system/fake-service-dc1.service`
+
+```
+[Unit]
+Description=Fake Service DC1
+After=network-online.target
+[Service]
+ExecStart=/usr/local/bin/fake-service
+Restart=always
+RestartSet=5
+Environment="MESSAGE=Hello from DC1"
+Environment=NAME=fake-service-dc1
+Environment="LISTEN_ADDR=127.0.0.1:8000"
+[Install]
+WantedBy=multi-user.target
+```
+
+## `/etc/systemd/system/fake-service-dc2.service`
+
+```
+[Unit]
+Description=Fake Service DC2
+After=network-online.target
+[Service]
+ExecStart=/usr/local/bin/fake-service
+Restart=always
+RestartSet=5
+Environment="MESSAGE=Hello from DC2"
+Environment=NAME=fake-service-dc2
+Environment="LISTEN_ADDR=0.0.0.0:8000"
+Environment="UPSTREAM_URIS=http://localhost:9000"
+[Install]
+WantedBy=multi-user.target
+```
+
+## `/etc/systemd/system/fake-service-dc1-sidecar.service`
+
+```
+[Unit]
+Description=Fake Service DC1 Sidecar
+After=network-online.target
+Wants=consul.service
+[Service]
+ExecStart=/usr/bin/consul connect envoy -sidecar-for fake-service-dc1-0 -envoy-binary /usr/local/bin/envoy -- -l debug
+Restart=always
+RestartSet=5
+StartLimitIntervalSec=0
+[Install]
+WantedBy=multi-user.target
+```
+
+## `/etc/systemd/system/fake-service-dc2-sidecar.service`
+
+```
+[Unit]
+Description=Fake Service DC2 Sidecar
+After=network-online.target
+Wants=consul.service
+[Service]
+ExecStart=/usr/bin/consul connect envoy -sidecar-for fake-service-dc2-0 -envoy-binary /usr/local/bin/envoy -- -l debug
+Restart=always
+RestartSet=5
+StartLimitIntervalSec=0
+[Install]
+WantedBy=multi-user.target
+```
+
+## `/etc/consul.d/fake-service-dc1.hcl`
+
+```
+service {
+  name = "fake-service-dc1"
+  id = "fake-service-dc1-0"
+  port = 8000
+  check = {
+    http = "http://localhost:8000/health"
+    interval = "5s"
+    method = "GET"
+    name = "http health check"
+    timeout = "2s"
+  }
+  connect {
+    sidecar_service {
+    }
+  }
+}
+```
+
+## `/etc/consul.d/fake-service-dc2.hcl`
+
+```
+service {
+  name = "fake-service-dc2"
+  id = "fake-service-dc2-0"
+  port = 8000
+  check = {
+    http = "http://localhost:8000/health"
+    interval = "5s"
+    method = "GET"
+    name = "http health check"
+    timeout = "2s"
+  }
+  connect {
+    sidecar_service {
+      proxy {
+        upstreams = [
+	  {
+	    destination_name = "fake-service-dc1"
+	    datacenter = "dc1"
+	    local_bind_port = 9000
+	  }
+	]
+      }
+    }
+  }
+}
+```
+
+## Get Envoy
+
+1. `curl -LO https://archive.tetratelabs.io/envoy/download/v1.23.1/envoy-v1.23.1-linux-amd64.tar.xz`
+2. `tar -Jxvf envoy-v1.23.1-linux-amd64.tar.xz`
+3. `sudo install -m 555 envoy-v1.23.1-linux-amd64/bin/envoy /usr/local/bin/envoy`
+4. `rm -rf envoy-v1.23.1-linux-amd64*`
+
+## Setup `fake-service-dc1`
+
+1. `curl -LO https://github.com/nicholasjackson/fake-service/releases/download/v0.24.2/fake_service_linux_amd64.zip`
+2. `unzip fake_service_linux_amd64.zip`
+3. `rm fake_service_linux_amd64.zip`
+4. `sudo install -m 555 fake-service /usr/local/bin/`
+5. `rm fake-service`
+6. `sudo systemctl daemon-reload`
+7. `sudo systemctl enable fake-service-dc1.service`
+8. `sudo systemctl start fake-service-dc1.service`
+9. `consul reload`
+10. `sudo systemctl enable fake-service-dc1-sidecar.service`
+11. `sudo systemctl start fake-service-dc1-sidecar.service`
+
+## Setup `fake-service-dc2`
+
+1. `curl -LO https://github.com/nicholasjackson/fake-service/releases/download/v0.24.2/fake_service_linux_amd64.zip`
+2. `unzip fake_service_linux_amd64.zip`
+3. `rm fake_service_linux_amd64.zip`
+4. `sudo install -m 555 fake-service /usr/local/bin/`
+5. `rm fake-service`
+6. `sudo systemctl daemon-reload`
+7. `sudo systemctl enable fake-service-dc2.service`
+8. `sudo systemctl start fake-service-dc2.service`
+9. `consul reload`
+10. `sudo systemctl enable fake-service-dc2-sidecar.service`
+11. `sudo systemctl start fake-service-dc2-sidecar.service`
+
+
+# What happens to intermediates when you restart the cluster?
 
 # Shutting down secondary Vault
 

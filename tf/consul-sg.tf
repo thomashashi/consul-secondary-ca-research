@@ -10,7 +10,7 @@ resource "aws_security_group_rule" "external_to_consul" {
   protocol          = "tcp"
   from_port         = 22
   to_port           = 22
-  cidr_blocks       = ["71.27.135.189/32"]
+  cidr_blocks       = ["71.27.135.179/32"]
 }
 
 resource "aws_security_group_rule" "internal_to_consul_tcp" {

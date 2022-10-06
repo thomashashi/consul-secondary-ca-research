@@ -69,5 +69,9 @@ packages:
   - gnupg2
   - vault
   - consul
+  - lsof
+  - strace
+  - jq
+  - curl
 runcmd:
   - [ "/usr/bin/update-alternatives", "--set", "editor", "/usr/bin/vim.nox" ]
